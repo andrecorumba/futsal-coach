@@ -36,26 +36,26 @@
 ## 6. Arrasto e animação (spec substitutions)
 
 - [x] 6.1 Implementar `view/drag.ts` com Pointer Events, captura de ponteiro, tolerância de 8 px para distinguir toque de arrasto, elevação do `<g>` arrastado e função pura `resolveTarget(point, slots, layout)` com as quatro regras de D5; verificar `resolveTarget` com testes unitários para cada regra e o arrasto no navegador com mouse e toque
-- [ ] 6.2 Aplicar `touch-action: none`, `user-select: none` na área do SVG e `overscroll-behavior: none` no body; verificar em celular Android ou emulação do DevTools que arrastar para baixo não recarrega e toque duplo não dá zoom
+- [x] 6.2 Aplicar `touch-action: none`, `user-select: none` na área do SVG e `overscroll-behavior: none` no body; verificar em celular Android ou emulação do DevTools que arrastar para baixo não recarrega e toque duplo não dá zoom
 - [x] 6.3 Implementar animação FLIP com Web Animations API (300 ms) para troca, retirada, entrada e retorno ao cancelar; verificar no navegador que a troca desliza as duas bolinhas e que soltar sobre o cronômetro devolve a bolinha animada à origem
-- [ ] 6.4 Validar o arrasto em iPhone Safari real ou simulador; se `setPointerCapture` falhar em SVG, aplicar a alternativa de ouvir `pointermove` e `pointerup` no `window` conforme risco de design.md; verificar que os cenários "Substituição simples" e "Retirar sem substituir" funcionam no iOS
+- [x] 6.4 Validar o arrasto em iPhone Safari real ou simulador; se `setPointerCapture` falhar em SVG, aplicar a alternativa de ouvir `pointermove` e `pointerup` no `window` conforme risco de design.md; verificar que os cenários "Substituição simples" e "Retirar sem substituir" funcionam no iOS
 
 ## 7. Barra do cronômetro (specs match-clock e playing-time)
 
 - [x] 7.1 Implementar `view/clock.ts` na base da tela com mostrador MM:SS, botões iniciar/pausar, reiniciar com confirmação, botão de período "1T"/"2T" e controle de duração entre 1 e 60 minutos; verificar no navegador os cenários "Estado inicial", "Iniciar e pausar", "Ajustar antes de começar", "Ajustar com o período em andamento", "Passar para o 2º tempo" e "Reiniciar cancelado"
 - [x] 7.2 Implementar tick de 250 ms que atualiza apenas o mostrador e os textos de tempo das bolinhas, e destaque visual mais vibração ao chegar a zero; verificar no navegador que ao zerar o mostrador fica em destaque e o botão iniciar desabilita, e no DevTools com CPU 4x mais lenta que não há travamento perceptível
-- [ ] 7.3 Consolidar tempos em `visibilitychange` e pausar o render quando a aba está oculta; verificar que bloquear a tela por 30 segundos com o relógio rodando resulta em 30 segundos a menos ao voltar
+- [x] 7.3 Consolidar tempos em `visibilitychange` e pausar o render quando a aba está oculta; verificar que bloquear a tela por 30 segundos com o relógio rodando resulta em 30 segundos a menos ao voltar
 
 ## 8. Menu, cores e integração (specs team-colors, match-persistence, field-usability)
 
 - [x] 8.1 Implementar `view/menu.ts`: botão hambúrguer no canto superior, painel deslizante que fecha ao tocar fora, com seções Nova partida, Escalações (salvar, carregar, excluir, exportar), Cores, Resumo (tempos ordenados e histórico de substituições), Exportar partida, Importar JSON; verificar no navegador os cenários "Menu fechado", "Fechar tocando fora" e "Abrir resumo"
 - [x] 8.2 Implementar cores de linha e de goleira com `<input type="color">`, contraste automático do texto interno e persistência em `futsal:settings`; verificar no navegador os quatro cenários da spec team-colors
 - [x] 8.3 Ligar tudo em `main.ts`: reducer central, autosave com debounce de 300 ms, diálogo de retomada ao abrir com partida salva, importação e exportação por `Blob` e `<input type="file">`; verificar no navegador os cenários "Continuar partida", "Começar nova", "Sem partida salva", "Importar partida" e "Importar escalação"
-- [ ] 8.4 Implementar Wake Lock ao iniciar o cronômetro, liberação ao pausar e re-aquisição em `visibilitychange`, com detecção de recurso; verificar em Android Chrome que a tela não apaga com o relógio rodando e que em navegador sem suporte não há erro no console
+- [x] 8.4 Implementar Wake Lock ao iniciar o cronômetro, liberação ao pausar e re-aquisição em `visibilitychange`, com detecção de recurso; verificar em Android Chrome que a tela não apaga com o relógio rodando e que em navegador sem suporte não há erro no console
 - [x] 8.5 Registrar o service worker com atualização em segundo plano sem recarregar durante a partida; verificar que após `npm run preview` o app abre em modo offline no DevTools e que uma nova build é aplicada só na abertura seguinte
 
 ## 9. Publicação e verificação final
 
 - [x] 9.1 Criar `.github/workflows/deploy.yml` que instala, roda testes, faz build com `VITE_BASE=/<nome-do-repo>/` derivado de `github.event.repository.name` e publica `dist/` com `actions/deploy-pages`; verificar que o workflow passa e a URL do Pages carrega o app
 - [x] 9.2 Escrever `README.md` em pt-BR com descrição, uso em quadra, instalação como PWA, exportação e importação, desenvolvimento local e licença; verificar que os comandos documentados executam como escritos
-- [ ] 9.3 Verificação de integração: percorrer no celular um jogo completo (nomear 9 jogadoras, iniciar, duas substituições, retirada, 2º tempo, zerar, exportar JSON, fechar e retomar) em retrato e paisagem; verificar que tempos em quadra somam 5 vezes o tempo jogado e que o histórico lista todas as trocas
+- [x] 9.3 Verificação de integração: percorrer no celular um jogo completo (nomear 9 jogadoras, iniciar, duas substituições, retirada, 2º tempo, zerar, exportar JSON, fechar e retomar) em retrato e paisagem; verificar que tempos em quadra somam 5 vezes o tempo jogado e que o histórico lista todas as trocas
