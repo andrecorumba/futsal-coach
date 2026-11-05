@@ -83,7 +83,9 @@ describe('storage: futsal:match (task 4.1)', () => {
     // Unplaced player "c" goes to the bench so nobody is lost.
     expect(benchNames(m)).toEqual(['Lia', '']);
     expect(m.clock).toMatchObject({ periodMinutes: 20, period: 1, remainingMs: 20 * MIN, runningSince: null, finished: false });
-    expect(m.settings).toEqual({ lineColor: DEFAULT_SETTINGS.lineColor, gkColor: DEFAULT_SETTINGS.gkColor });
+    expect(m.settings).toEqual({ lineColor: DEFAULT_SETTINGS.lineColor, gkColor: DEFAULT_SETTINGS.gkColor, reserveColor: DEFAULT_SETTINGS.reserveColor });
+    expect(m.kickoff).toBe(false);
+    expect(m.roster.every((p) => p.role === null)).toBe(true);
     expect(m.playingTimeMs).toEqual({});
     expect(m.substitutions).toEqual([]);
   });
@@ -116,8 +118,8 @@ describe('storage: futsal:settings (task 4.1)', () => {
   it('returns defaults when empty and round-trips saved settings', () => {
     const storage = new MemoryStorage();
     expect(loadSettings(storage)).toEqual(DEFAULT_SETTINGS);
-    saveSettings({ lineColor: '#ffeb3b', gkColor: '#e53935', periodMinutes: 15 }, storage);
-    expect(loadSettings(storage)).toEqual({ lineColor: '#ffeb3b', gkColor: '#e53935', periodMinutes: 15 });
+    saveSettings({ lineColor: '#ffeb3b', gkColor: '#e53935', reserveColor: '#7b1fa2', periodMinutes: 15 }, storage);
+    expect(loadSettings(storage)).toEqual({ lineColor: '#ffeb3b', gkColor: '#e53935', reserveColor: '#7b1fa2', periodMinutes: 15 });
     expect(JSON.parse(storage.getItem(STORAGE_KEYS.settings)!).version).toBe(1);
   });
 
@@ -131,9 +133,9 @@ describe('storage: futsal:settings (task 4.1)', () => {
 
   it('a new match uses the saved settings (team-colors Cores persistem)', () => {
     const storage = new MemoryStorage();
-    saveSettings({ lineColor: '#ffffff', gkColor: '#000000', periodMinutes: 12 }, storage);
+    saveSettings({ lineColor: '#ffffff', gkColor: '#000000', reserveColor: '#123456', periodMinutes: 12 }, storage);
     const m = newMatch(undefined, loadSettings(storage));
-    expect(m.settings).toEqual({ lineColor: '#ffffff', gkColor: '#000000' });
+    expect(m.settings).toEqual({ lineColor: '#ffffff', gkColor: '#000000', reserveColor: '#123456' });
     expect(m.clock.remainingMs).toBe(12 * MIN);
   });
 });
@@ -276,7 +278,8 @@ describe('storage: lineups and new match (task 4.3)', () => {
   it('Nova partida com mesmo elenco: names and slots kept, times 00:00, empty history, 1T with configured duration', () => {
     const m = run(matchInProgress(), { type: 'setDuration', minutes: 15 }, { type: 'setPeriod', period: 2, now: T0 + 6 * MIN });
     const next = run(m, { type: 'newMatch' });
-    expect(next.roster).toEqual(m.roster);
+    // Names kept; roles are cleared until the next kickoff (court-lineup "Nova partida zera os papéis").
+    expect(next.roster).toEqual(m.roster.map((p) => ({ ...p, role: null })));
     expect(next.slots).toEqual(m.slots);
     for (const p of next.roster) expect(playingTimeAt(next, p.id, T0 + 10 * MIN)).toBe(0);
     expect(next.substitutions).toEqual([]);

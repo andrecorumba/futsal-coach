@@ -92,9 +92,14 @@ export function createMenu(opts: MenuOptions): Menu {
 
   // Colors
   const colorSection = section(t.menu.sectionColors);
-  const lineInput = colorInput();
   const gkInput = colorInput();
-  colorSection.append(colorRow(t.menu.lineColor, lineInput), colorRow(t.menu.gkColor, gkInput));
+  const lineInput = colorInput();
+  const reserveInput = colorInput();
+  colorSection.append(
+    colorRow(t.menu.gkColor, gkInput),
+    colorRow(t.menu.lineColor, lineInput),
+    colorRow(t.menu.reserveColor, reserveInput),
+  );
 
   body.append(matchSection, summarySection, lineupSection, colorSection);
   panel.append(header, body);
@@ -200,9 +205,10 @@ export function createMenu(opts: MenuOptions): Menu {
   }
 
   function renderColors(): void {
-    const { lineColor, gkColor } = app.getState().settings;
-    if (document.activeElement !== lineInput && lineInput.value !== lineColor) lineInput.value = lineColor;
-    if (document.activeElement !== gkInput && gkInput.value !== gkColor) gkInput.value = gkColor;
+    const { lineColor, gkColor, reserveColor } = app.getState().settings;
+    syncColor(gkInput, gkColor);
+    syncColor(lineInput, lineColor);
+    syncColor(reserveInput, reserveColor);
   }
 
   function render(): void {
@@ -315,8 +321,11 @@ export function createMenu(opts: MenuOptions): Menu {
     })();
   });
 
-  lineInput.addEventListener('input', () => app.dispatch({ type: 'setColors', colors: { lineColor: lineInput.value } }));
   gkInput.addEventListener('input', () => app.dispatch({ type: 'setColors', colors: { gkColor: gkInput.value } }));
+  lineInput.addEventListener('input', () => app.dispatch({ type: 'setColors', colors: { lineColor: lineInput.value } }));
+  reserveInput.addEventListener('input', () =>
+    app.dispatch({ type: 'setColors', colors: { reserveColor: reserveInput.value } }),
+  );
 
   return {
     open,
@@ -357,6 +366,11 @@ function colorInput(): HTMLInputElement {
   const input = document.createElement('input');
   input.type = 'color';
   return input;
+}
+
+/** Shows the current colour without fighting a picker the user is interacting with. */
+function syncColor(input: HTMLInputElement, color: string): void {
+  if (document.activeElement !== input && input.value !== color) input.value = color;
 }
 
 function colorRow(label: string, input: HTMLInputElement): HTMLLabelElement {

@@ -227,7 +227,10 @@ export function createApp(root: HTMLElement, initial: Match): App {
 
 /** Device colours win over the colours stored in a resumed or imported match (spec team-colors "Cores persistem"). */
 function withDeviceColors(match: Match, colors: Match['settings']): Match {
-  return { ...match, settings: { lineColor: colors.lineColor, gkColor: colors.gkColor } };
+  return {
+    ...match,
+    settings: { lineColor: colors.lineColor, gkColor: colors.gkColor, reserveColor: colors.reserveColor },
+  };
 }
 
 /** Resume dialog (spec match-persistence "Retomada ao reabrir"). Resolves true to continue the saved match. */

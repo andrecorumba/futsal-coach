@@ -255,7 +255,7 @@ describe('reducer: colors and purity', () => {
   it('setColors updates only the given color', () => {
     const m = namedMatch();
     const next = run(m, { type: 'setColors', colors: { gkColor: '#ff0000' } });
-    expect(next.settings).toEqual({ lineColor: m.settings.lineColor, gkColor: '#ff0000' });
+    expect(next.settings).toEqual({ lineColor: m.settings.lineColor, gkColor: '#ff0000', reserveColor: m.settings.reserveColor });
   });
 
   it('does not mutate the input match', () => {

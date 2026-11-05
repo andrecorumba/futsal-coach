@@ -81,10 +81,24 @@ export function settle(match: Match, now: number): Match {
   return { ...m, clock: { ...m.clock, remainingMs: 0, runningSince: null, finished: true } };
 }
 
+/**
+ * Kickoff (design.md D2): the first clock start of the match freezes roles. Whoever is on a
+ * court slot becomes a starter, everyone on the bench a reserve. Later starts keep them.
+ */
+function freezeRoles(match: Match): Match {
+  if (match.kickoff) return match;
+  const onCourt = new Set(onCourtPlayerIds(match));
+  return {
+    ...match,
+    kickoff: true,
+    roster: match.roster.map((p) => ({ ...p, role: onCourt.has(p.id) ? 'starter' : 'reserve' })),
+  };
+}
+
 export function startClock(match: Match, now: number): Match {
   const m = settle(match, now);
   if (isRunning(m) || m.clock.finished || m.clock.remainingMs <= 0) return m;
-  const running: Match = { ...m, clock: { ...m.clock, runningSince: now } };
+  const running: Match = freezeRoles({ ...m, clock: { ...m.clock, runningSince: now } });
   return beginPlaying(running, onCourtPlayerIds(running), now);
 }
 

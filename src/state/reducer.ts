@@ -86,7 +86,7 @@ function addReserve(match: Match): Match {
   const slotId = nextId('bench-', match.slots.map((s) => s.id));
   return {
     ...match,
-    roster: [...match.roster, { id: playerId, name: '' }],
+    roster: [...match.roster, { id: playerId, name: '', role: match.kickoff ? 'reserve' : null }],
     slots: [...match.slots, { id: slotId, kind: 'bench', playerId, x: 0, y: 0 }],
   };
 }
@@ -209,7 +209,9 @@ function transferPlayingTime(match: Match, outId: string | null, inId: string | 
   return m;
 }
 
+/** Adds a history entry. Changes before kickoff are lineup setup, not substitutions (design.md D4). */
 function record(match: Match, outPlayerId: string | null, inPlayerId: string | null, now: number): Match {
+  if (!match.kickoff) return match;
   const entry: Substitution = {
     period: match.clock.period,
     elapsedMs: time.elapsedAt(match, now),
@@ -223,14 +225,16 @@ function record(match: Match, outPlayerId: string | null, inPlayerId: string | n
 
 // Match lifecycle (spec match-persistence)
 
-/** New match from the menu: keeps names and slots, zeroes clock, times and history. */
+/** New match from the menu: keeps names and slots, zeroes clock, times, history and roles until the next kickoff. */
 function restartMatch(match: Match): Match {
   return {
     ...match,
+    roster: match.roster.map((p) => ({ ...p, role: null })),
     clock: newClock(match.clock.periodMinutes),
     playingTimeMs: {},
     playingSince: {},
     substitutions: [],
+    kickoff: false,
   };
 }
 
@@ -238,7 +242,7 @@ function restartMatch(match: Match): Match {
 function applyLineup(match: Match, lineup: Lineup): Match {
   return {
     ...restartMatch(match),
-    roster: lineup.roster.map((p) => ({ ...p })),
+    roster: lineup.roster.map((p) => ({ ...p, role: null })),
     slots: lineup.slots.map((s) => ({ ...s })),
   };
 }

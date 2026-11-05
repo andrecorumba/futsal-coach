@@ -18,6 +18,8 @@ Funciona no navegador do celular, sem login e sem servidor. Depois da primeira v
 - Arrastar uma titular sobre outra titular troca as duas de vaga.
 - Soltar fora da quadra e do banco cancela o movimento.
 
+**Titulares e reservas.** No primeiro toque em iniciar do relógio, quem está em quadra vira titular e quem está no banco vira reserva. A partir daí a cor acompanha a jogadora: a reserva que entra continua com a cor de reserva na quadra, e a titular que sai continua com a cor de titular no banco. A vaga de goleira sempre usa a cor de goleira. Antes desse primeiro início a cor segue o lugar, para você montar a escalação à vontade, e essas trocas não entram no histórico de substituições. Se você tocar em iniciar antes de terminar a escalação, use **Nova partida** no menu para zerar os papéis.
+
 **Cronômetro.** A barra de baixo mostra o tempo restante do período. Os botões são, nesta ordem:
 
 - **1T / 2T** passa para o outro tempo, com o relógio zerado e parado.
@@ -31,10 +33,10 @@ Ao chegar a 00:00 o relógio para sozinho, o mostrador fica em destaque e o celu
 
 **Menu.** O botão no canto superior esquerdo abre o menu. Tocar fora dele fecha o menu sem mexer na quadra. No menu ficam:
 
-- **Nova partida** zera tempos, histórico e cronômetro, mantendo nomes e vagas.
+- **Nova partida** zera tempos, histórico, cronômetro e os papéis de titular e reserva, mantendo nomes e vagas. Os papéis são definidos de novo no próximo início do relógio. Carregar uma escalação também zera os papéis.
 - **Resumo de tempos** lista as jogadoras do maior para o menor tempo, marca quem está em quadra e mostra o histórico de substituições.
 - **Escalações** salva a escalação atual com um nome, carrega, exporta ou exclui escalações salvas.
-- **Cores** escolhe a cor das jogadoras de linha e a cor da goleira.
+- **Cores** escolhe três cores: Goleira, Titulares e Reservas. Por padrão a goleira é amarela, as titulares azuis e as reservas roxo claro. As cores ficam salvas no aparelho.
 - **Exportar partida** e **Importar JSON** fazem cópia de segurança e troca de dados entre aparelhos.
 
 **Fechar e voltar.** A partida é salva automaticamente a cada mudança. Ao abrir o app de novo, ele pergunta se você quer continuar a partida salva ou começar uma nova. Ao continuar, o relógio volta pausado. Se ele estava rodando quando o app fechou, o tempo que passou conta como jogado.

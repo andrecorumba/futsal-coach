@@ -129,8 +129,9 @@ export const t = {
     storageFailed: 'Não foi possível salvar neste aparelho. Exporte a partida em JSON para não perder os dados.',
 
     sectionColors: 'Cores',
-    lineColor: 'Jogadoras de linha',
     gkColor: 'Goleira',
+    lineColor: 'Titulares',
+    reserveColor: 'Reservas',
   },
 
   files: {

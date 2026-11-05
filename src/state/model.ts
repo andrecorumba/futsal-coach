@@ -12,9 +12,13 @@ export const MAX_PERIOD_MINUTES = 60;
 export const COURT_SLOT_COUNT = 5;
 export const DEFAULT_BENCH_SIZE = 4;
 
+/** Frozen at the first clock start of a match; null before kickoff (the slot decides). */
+export type PlayerRole = 'starter' | 'reserve';
+
 export interface Player {
   id: string;
   name: string;
+  role: PlayerRole | null;
 }
 
 export type SlotKind = 'court' | 'bench';
@@ -59,8 +63,10 @@ export interface Substitution {
 }
 
 export interface Colors {
+  /** Starters' colour (key kept from the single line colour for saved data compatibility). */
   lineColor: string;
   gkColor: string;
+  reserveColor: string;
 }
 
 export interface Match {
@@ -74,6 +80,8 @@ export interface Match {
   playingSince: Record<string, number>;
   substitutions: Substitution[];
   settings: Colors;
+  /** True from the first clock start of the match: roles are frozen and changes go into the history. */
+  kickoff: boolean;
 }
 
 export interface Lineup {
@@ -88,7 +96,7 @@ export interface Settings extends Colors {
   periodMinutes: number;
 }
 
-export const DEFAULT_COLORS: Colors = { lineColor: '#1e88e5', gkColor: '#fdd835' };
+export const DEFAULT_COLORS: Colors = { lineColor: '#1e88e5', gkColor: '#fdd835', reserveColor: '#b39ddb' };
 
 export const DEFAULT_SETTINGS: Settings = { ...DEFAULT_COLORS, periodMinutes: DEFAULT_PERIOD_MINUTES };
 
@@ -127,12 +135,12 @@ export function defaultLineup(name = ''): Lineup {
   let n = 0;
   for (const position of POSITIONS) {
     const id = `p${++n}`;
-    roster.push({ id, name: '' });
+    roster.push({ id, name: '', role: null });
     slots.push({ id: courtSlotId(position), kind: 'court', position, playerId: id, ...DEFAULT_COORDS[position] });
   }
   for (let i = 1; i <= DEFAULT_BENCH_SIZE; i++) {
     const id = `p${++n}`;
-    roster.push({ id, name: '' });
+    roster.push({ id, name: '', role: null });
     slots.push({ id: `bench-${i}`, kind: 'bench', playerId: id, x: 0, y: 0 });
   }
   return { version: FORMAT_VERSION, name, roster, slots };
@@ -148,13 +156,14 @@ export function newMatch(lineup: Lineup = defaultLineup(), settings: Partial<Set
   const s = { ...DEFAULT_SETTINGS, ...settings };
   return {
     version: FORMAT_VERSION,
-    roster: lineup.roster.map((p) => ({ ...p })),
+    roster: lineup.roster.map((p) => ({ ...p, role: null })),
     slots: lineup.slots.map((sl) => ({ ...sl })),
     clock: newClock(s.periodMinutes),
     playingTimeMs: {},
     playingSince: {},
     substitutions: [],
-    settings: { lineColor: s.lineColor, gkColor: s.gkColor },
+    settings: { lineColor: s.lineColor, gkColor: s.gkColor, reserveColor: s.reserveColor },
+    kickoff: false,
   };
 }
 
@@ -163,7 +172,8 @@ export function lineupFromMatch(match: Match, name: string): Lineup {
   return {
     version: FORMAT_VERSION,
     name,
-    roster: match.roster.map((p) => ({ ...p })),
+    // Lineups do not keep roles (design.md D5).
+    roster: match.roster.map((p) => ({ ...p, role: null })),
     slots: match.slots.map((s) => ({ ...s })),
   };
 }

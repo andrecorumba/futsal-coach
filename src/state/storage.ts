@@ -16,6 +16,7 @@ import {
   type Lineup,
   type Match,
   type Player,
+  type PlayerRole,
   type Position,
   type Settings,
   type Slot,
@@ -200,11 +201,16 @@ function isColor(v: unknown): v is string {
   return typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
 }
 
+function isRole(v: unknown): v is PlayerRole {
+  return v === 'starter' || v === 'reserve';
+}
+
 function normalizeColors(v: unknown): Colors {
   const r = isRecord(v) ? v : {};
   return {
     lineColor: isColor(r.lineColor) ? r.lineColor : DEFAULT_SETTINGS.lineColor,
     gkColor: isColor(r.gkColor) ? r.gkColor : DEFAULT_SETTINGS.gkColor,
+    reserveColor: isColor(r.reserveColor) ? r.reserveColor : DEFAULT_SETTINGS.reserveColor,
   };
 }
 
@@ -223,7 +229,7 @@ function normalizeRoster(v: unknown): Player[] | null {
   for (const item of v) {
     if (!isRecord(item) || typeof item.id !== 'string' || item.id === '' || seen.has(item.id)) continue;
     seen.add(item.id);
-    roster.push({ id: item.id, name: typeof item.name === 'string' ? item.name : '' });
+    roster.push({ id: item.id, name: typeof item.name === 'string' ? item.name : '', role: isRole(item.role) ? item.role : null });
   }
   return roster;
 }
@@ -345,15 +351,32 @@ export function normalizeMatch(v: unknown): Match | null {
     }
   }
 
+  const playingTimeMs = normalizeTimes(v.playingTimeMs, known);
+  const substitutions = normalizeSubstitutions(v.substitutions, roster);
+  // Files from before roles existed: infer whether the clock was ever started (design.md D5).
+  const kickoff =
+    typeof v.kickoff === 'boolean'
+      ? v.kickoff
+      : substitutions.length > 0 ||
+        Object.values(playingTimeMs).some((ms) => ms > 0) ||
+        clock.runningSince !== null ||
+        clock.remainingMs < clock.periodLengthMs;
+  const onCourt = new Set(slots.filter((s) => s.kind === 'court' && s.playerId !== null).map((s) => s.playerId));
+  const withRoles: Player[] = roster.map((p) => ({
+    ...p,
+    role: !kickoff ? null : (p.role ?? (onCourt.has(p.id) ? 'starter' : 'reserve')),
+  }));
+
   return {
     version: FORMAT_VERSION,
-    roster,
+    roster: withRoles,
     slots,
     clock,
-    playingTimeMs: normalizeTimes(v.playingTimeMs, known),
+    playingTimeMs,
     playingSince,
-    substitutions: normalizeSubstitutions(v.substitutions, roster),
+    substitutions,
     settings: normalizeColors(v.settings),
+    kickoff,
   };
 }
 
@@ -363,5 +386,11 @@ export function normalizeLineup(v: unknown): Lineup | null {
   if (!roster) return null;
   const slots = normalizeSlots(v.slots, roster);
   if (!slots) return null;
-  return { version: FORMAT_VERSION, name: typeof v.name === 'string' ? v.name.trim() : '', roster, slots };
+  // Lineups do not keep roles: they are frozen again at the next kickoff (design.md D5).
+  return {
+    version: FORMAT_VERSION,
+    name: typeof v.name === 'string' ? v.name.trim() : '',
+    roster: roster.map((p) => ({ ...p, role: null })),
+    slots,
+  };
 }

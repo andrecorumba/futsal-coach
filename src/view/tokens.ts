@@ -3,6 +3,7 @@
 // units, so the Web Animations API can animate it. Animation is keyed by player:
 // a player whose centre changed between two renders slides from the old point.
 
+import { colorFor } from '../state/colors';
 import { playerName, type Match, type Slot } from '../state/model';
 import { playingTimeAt } from '../state/time';
 import { contrastText, formatElapsed, initial, truncate } from './format';
@@ -172,7 +173,8 @@ export class TokenLayer {
     }
     const name = playerName(match, slot.playerId);
     const time = formatElapsed(playingTimeAt(match, slot.playerId!, now));
-    const color = isCourt && slot.position === 'GL' ? match.settings.gkColor : match.settings.lineColor;
+    const player = match.roster.find((pl) => pl.id === slot.playerId);
+    const color = colorFor(match, slot, player ?? { role: null });
     p.body.style.fill = color;
     p.inner.style.fill = contrastText(color);
     setText(p.inner, isCourt ? slot.position! : initial(name));
