@@ -1,0 +1,530 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: #1b1f24;
+  color: #f5f5f5;
+  --bg: #1b1f24;
+  --panel: #262b33;
+  --panel-2: #313843;
+  --text: #f5f5f5;
+  --muted: #a9b1bc;
+  --accent: #43a047;
+  --danger: #e53935;
+  --finished: #ff5252;
+  /* Set from layout.ts by main.ts; fallbacks keep the same values. */
+  --top-bar: 44px;
+  --clock-bar: 64px;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  /* No pull-to-refresh or scroll chaining (spec field-usability). */
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: calc(var(--top-bar) + env(safe-area-inset-top)) 1fr calc(var(--clock-bar) + env(safe-area-inset-bottom));
+}
+
+/* Buttons */
+
+.btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.btn:focus-visible {
+  outline: 2px solid #90caf9;
+  outline-offset: 2px;
+}
+.btn-primary {
+  background: var(--accent);
+}
+.btn-danger {
+  background: var(--danger);
+}
+
+/* Top bar */
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  padding: env(safe-area-inset-top) 8px 0 calc(8px + env(safe-area-inset-left));
+  background: var(--bg);
+}
+.menu-button {
+  background: transparent;
+  padding: 0;
+}
+
+/* Board */
+
+.board {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+.field {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Dragging must never scroll, zoom or select (spec field-usability, design.md D5). */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.court-floor {
+  fill: #2e7d4f;
+}
+.court-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 0.12;
+}
+.court-mark {
+  fill: rgba(255, 255, 255, 0.85);
+}
+.court-goal {
+  fill: rgba(255, 255, 255, 0.2);
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 0.1;
+}
+.bench-area {
+  fill: var(--panel);
+}
+
+/* Tokens */
+
+.tokens g {
+  cursor: grab;
+}
+.tokens .hit {
+  fill: transparent;
+}
+.token .body {
+  stroke: rgba(0, 0, 0, 0.45);
+  stroke-width: 0.12;
+}
+.token.dragging {
+  cursor: grabbing;
+}
+.token.dragging .body {
+  stroke: #fff;
+  stroke-width: 0.25;
+  filter: drop-shadow(0 0.3px 0.4px rgba(0, 0, 0, 0.6));
+}
+.tokens text {
+  text-anchor: middle;
+  pointer-events: none;
+  font-family: inherit;
+}
+.tokens .inner {
+  font-weight: 700;
+}
+.tokens .name {
+  fill: var(--text);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.2;
+}
+.tokens .time {
+  fill: var(--muted);
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 0.18;
+}
+.empty {
+  cursor: default;
+}
+.empty .body {
+  fill: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 0.1;
+  stroke-dasharray: 0.4 0.3;
+}
+.empty .inner {
+  fill: rgba(255, 255, 255, 0.6);
+}
+.add-reserve {
+  cursor: pointer;
+}
+.add-ring {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 0.12;
+  stroke-dasharray: 0.4 0.3;
+}
+.add-plus {
+  stroke: var(--muted);
+  stroke-width: 0.18;
+  stroke-linecap: round;
+}
+/* The UA focus ring is drawn in viewBox units (huge); focus is shown by the stroke rules below. */
+.tokens g,
+.tokens g:focus,
+.tokens g:focus-visible {
+  outline: none;
+}
+.tokens g:focus-visible .body,
+.add-reserve:focus-visible .add-ring {
+  stroke: #90caf9;
+  stroke-width: 0.25;
+}
+
+/* Clock bar */
+
+.clock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 calc(8px + env(safe-area-inset-right)) env(safe-area-inset-bottom) calc(8px + env(safe-area-inset-left));
+  background: var(--panel);
+  border-top: 1px solid #3a414d;
+}
+.clock-period {
+  min-width: 48px;
+}
+.clock-display {
+  flex: 1;
+  text-align: center;
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.clock-display.finished {
+  color: #fff;
+  background: var(--finished);
+  border-radius: 10px;
+  animation: blink 1s steps(2, start) 3;
+}
+.clock-toggle {
+  min-width: 56px;
+}
+.clock-duration {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.clock-duration input {
+  width: 44px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* 16px avoids iOS zoom on focus */
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.clock-duration input::-webkit-inner-spin-button,
+.clock-duration input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@keyframes blink {
+  to {
+    opacity: 0.4;
+  }
+}
+
+/* Name editor */
+
+.name-editor {
+  position: fixed;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+.name-editor-row {
+  display: flex;
+  gap: 6px;
+}
+.name-editor input {
+  width: 150px;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid #4a5260;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+/* Confirmation dialog */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+.dialog {
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 16px;
+  background: var(--panel);
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6);
+}
+.dialog p {
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog-input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  margin: 0 0 16px;
+  padding: 0 10px;
+  border: 1px solid #4a5260;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* avoids iOS zoom on focus */
+}
+
+/* Menu */
+
+.menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+  touch-action: none;
+}
+.menu-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.menu-scrim.guard {
+  pointer-events: auto;
+}
+.menu-panel {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 25;
+  width: min(360px, 88vw);
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  background: var(--panel);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  transform: translateX(-105%);
+  visibility: hidden;
+  transition:
+    transform 220ms ease-out,
+    visibility 0s linear 220ms;
+}
+.menu-panel.open {
+  transform: none;
+  visibility: visible;
+  transition: transform 220ms ease-out;
+}
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 4px 16px;
+  border-bottom: 1px solid #3a414d;
+}
+.menu-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.menu-close {
+  background: transparent;
+}
+.menu-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 16px 24px;
+}
+.menu-section {
+  padding: 8px 0 12px;
+  border-bottom: 1px solid #3a414d;
+}
+.menu-section:last-child {
+  border-bottom: 0;
+}
+.menu-section h3 {
+  margin: 4px 0 10px;
+  font-size: 15px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.menu-section h4 {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.menu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.menu-action {
+  justify-content: flex-start;
+}
+.menu-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.summary-list,
+.history-list,
+.lineup-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.summary-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.summary-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.summary-badge:not(:empty) {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.summary-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.history-list li {
+  padding: 4px 0;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.history-empty,
+.lineup-empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+.lineup-list {
+  margin-top: 10px;
+}
+.lineup-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.lineup-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.lineup-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.lineup-count {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.lineup-actions {
+  display: flex;
+  gap: 8px;
+}
+.color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+}
+.color-row input {
+  width: 56px;
+  height: 44px;
+  padding: 2px;
+  border: 1px solid #4a5260;
+  border-radius: 10px;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clock-display.finished {
+    animation: none;
+  }
+  .menu-panel,
+  .menu-panel.open,
+  .menu-scrim {
+    transition: none;
+  }
+}
