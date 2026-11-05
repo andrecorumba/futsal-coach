@@ -56,6 +56,6 @@
 
 ## 9. Publicação e verificação final
 
-- [ ] 9.1 Criar `.github/workflows/deploy.yml` que instala, roda testes, faz build com `VITE_BASE=/<nome-do-repo>/` derivado de `github.event.repository.name` e publica `dist/` com `actions/deploy-pages`; verificar que o workflow passa e a URL do Pages carrega o app
+- [x] 9.1 Criar `.github/workflows/deploy.yml` que instala, roda testes, faz build com `VITE_BASE=/<nome-do-repo>/` derivado de `github.event.repository.name` e publica `dist/` com `actions/deploy-pages`; verificar que o workflow passa e a URL do Pages carrega o app
 - [x] 9.2 Escrever `README.md` em pt-BR com descrição, uso em quadra, instalação como PWA, exportação e importação, desenvolvimento local e licença; verificar que os comandos documentados executam como escritos
 - [ ] 9.3 Verificação de integração: percorrer no celular um jogo completo (nomear 9 jogadoras, iniciar, duas substituições, retirada, 2º tempo, zerar, exportar JSON, fechar e retomar) em retrato e paisagem; verificar que tempos em quadra somam 5 vezes o tempo jogado e que o histórico lista todas as trocas
