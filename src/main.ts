@@ -25,7 +25,7 @@ import { openNameEditor, type NameEditor } from './view/editor';
 import { downloadJson, matchFilename, pickJsonFile } from './view/files';
 import { t } from './view/i18n';
 import { icons } from './view/icons';
-import { CLOCK_BAR_PX, currentOrientation, layoutFor, TOP_BAR_PX, viewBoxOf, type Layout } from './view/layout';
+import { CLOCK_BAR_PX, currentOrientation, layoutFor, viewBoxOf, type Layout } from './view/layout';
 import { setAttr, svgEl } from './view/svg';
 import { createMenu } from './view/menu';
 import { TokenLayer } from './view/tokens';
@@ -45,10 +45,8 @@ export interface App {
   /** Full re-render from the current state. */
   render(): void;
   now(): number;
-  /** Top bar placeholder button for the menu (task 8.1 wires it). */
+  /** Menu button floating over the board's top-left corner (the menu wires it). */
   readonly menuButton: HTMLButtonElement;
-  /** Top bar element, for the menu panel to attach to. */
-  readonly topBar: HTMLElement;
   destroy(): void;
 }
 
@@ -57,19 +55,16 @@ export function createApp(root: HTMLElement, initial: Match): App {
   const listeners = new Set<Listener>();
   const now = (): number => Date.now();
 
-  document.documentElement.style.setProperty('--top-bar', `${TOP_BAR_PX}px`);
   document.documentElement.style.setProperty('--clock-bar', `${CLOCK_BAR_PX}px`);
 
-  // Top bar with the menu button placeholder.
-  const topBar = document.createElement('header');
-  topBar.className = 'top-bar';
+  // Menu button: no top bar, it floats over the board's top-left corner (design.md D2 of
+  // phone-fit-and-restart-match), so the court gets the full height above the clock bar.
   const menuButton = document.createElement('button');
   menuButton.type = 'button';
   menuButton.className = 'btn menu-button';
   menuButton.innerHTML = icons.menu;
   menuButton.setAttribute('aria-label', t.menuButton);
   menuButton.title = t.menuButton;
-  topBar.append(menuButton);
 
   // Board: court, bench and tokens in one SVG.
   const board = document.createElement('main');
@@ -79,7 +74,7 @@ export function createApp(root: HTMLElement, initial: Match): App {
   const court = createCourt();
   const tokens = new TokenLayer(() => dispatch({ type: 'addReserve' }));
   svg.append(benchArea, court, tokens.layer);
-  board.append(svg);
+  board.append(svg, menuButton);
 
   let editor: NameEditor | null = null;
   const clock = new ClockBar({
@@ -89,7 +84,7 @@ export function createApp(root: HTMLElement, initial: Match): App {
     confirm: confirmDialog,
   });
 
-  root.replaceChildren(topBar, board, clock.el);
+  root.replaceChildren(board, clock.el);
 
   let orientation = currentOrientation();
   let layout: Layout = layoutFor(orientation, state.slots);
@@ -129,7 +124,7 @@ export function createApp(root: HTMLElement, initial: Match): App {
       const slot = findSlot(state, slotId);
       const before = tokens.playerPositions();
       if (slot?.playerId) before.set(slot.playerId, center);
-      // Released over the clock bar, the top bar or outside the window: cancel.
+      // Released over the clock bar, the menu button or outside the window: cancel.
       const target = overSvg ? resolveTarget(center, state.slots, layout, slotId) : { kind: 'none' as const };
       const prev = state;
       dispatch({ type: 'dropOn', fromSlotId: slotId, target, now: now() });
@@ -213,7 +208,6 @@ export function createApp(root: HTMLElement, initial: Match): App {
     render,
     now,
     menuButton,
-    topBar,
     destroy() {
       stopLoop();
       detachDrag();

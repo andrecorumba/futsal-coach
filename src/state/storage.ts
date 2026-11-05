@@ -313,6 +313,23 @@ function normalizeTimes(v: unknown, known: Set<string>): Record<string, number> 
   return out;
 }
 
+/**
+ * Kickoff lineup (court slot id to player id). Optional in files; entries whose slot is not a
+ * court slot or whose player is not in the roster are dropped, and a player counts only once.
+ */
+function normalizeKickoffCourt(v: unknown, slots: Slot[], known: Set<string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (!isRecord(v)) return out;
+  const courtIds = new Set(slots.filter((s) => s.kind === 'court').map((s) => s.id));
+  const used = new Set<string>();
+  for (const [slotId, playerId] of Object.entries(v)) {
+    if (!courtIds.has(slotId) || typeof playerId !== 'string' || !known.has(playerId) || used.has(playerId)) continue;
+    out[slotId] = playerId;
+    used.add(playerId);
+  }
+  return out;
+}
+
 function normalizeSubstitutions(v: unknown, roster: Player[]): Substitution[] {
   if (!Array.isArray(v)) return [];
   const nullableId = (x: unknown): string | null => (typeof x === 'string' ? x : null);
@@ -377,6 +394,7 @@ export function normalizeMatch(v: unknown): Match | null {
     substitutions,
     settings: normalizeColors(v.settings),
     kickoff,
+    kickoffCourt: kickoff ? normalizeKickoffCourt(v.kickoffCourt, slots, known) : {},
   };
 }
 

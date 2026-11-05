@@ -80,10 +80,10 @@ export const t = {
     title: 'Menu',
     close: 'Fechar menu',
     sectionMatch: 'Partida',
-    newMatch: 'Nova partida',
-    confirmNewMatch:
-      'Começar uma partida nova? Nomes e vagas ficam; tempos, histórico e cronômetro voltam ao início do 1º tempo.',
-    newMatchAction: 'Nova partida',
+    restartMatch: 'Reiniciar partida',
+    confirmRestartMatch:
+      'Reiniciar a partida? As titulares voltam às vagas do apito inicial e as demais ao banco. Os nomes ficam; tempos, histórico e cronômetro voltam ao início do 1º tempo.',
+    restartMatchAction: 'Reiniciar',
     exportMatch: 'Exportar partida',
     importJson: 'Importar JSON',
     backupNote:

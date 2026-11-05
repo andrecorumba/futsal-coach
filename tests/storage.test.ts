@@ -275,12 +275,16 @@ describe('storage: lineups and new match (task 4.3)', () => {
     expect(loadMatch(storage)).toEqual(m);
   });
 
-  it('Nova partida com mesmo elenco: names and slots kept, times 00:00, empty history, 1T with configured duration', () => {
+  it('Reiniciar partida com mesmo elenco: names kept, kickoff lineup back, times 00:00, empty history, 1T with configured duration', () => {
     const m = run(matchInProgress(), { type: 'setDuration', minutes: 15 }, { type: 'setPeriod', period: 2, now: T0 + 6 * MIN });
     const next = run(m, { type: 'newMatch' });
     // Names kept; roles are cleared until the next kickoff (court-lineup "Nova partida zera os papéis").
     expect(next.roster).toEqual(m.roster.map((p) => ({ ...p, role: null })));
-    expect(next.slots).toEqual(m.slots);
+    // Kickoff lineup restored (match-persistence "Reiniciar partida pelo menu"); Carla keeps her moved spot.
+    expect(['GL', 'FX', 'AE', 'AD', 'PV'].map((p) => at(next, p))).toEqual(['Ana', 'Carla', 'Bia', 'Eva', 'Duda']);
+    expect(next.slots.find((s) => s.id === 'court-FX')).toMatchObject({ x: 0.33, y: 0.41 });
+    expect(benchNames(next)).toEqual(['Mia', 'Nina', 'Olga', 'Lia']);
+    expect(next.kickoffCourt).toEqual({});
     for (const p of next.roster) expect(playingTimeAt(next, p.id, T0 + 10 * MIN)).toBe(0);
     expect(next.substitutions).toEqual([]);
     expect(next.clock).toMatchObject({ period: 1, periodMinutes: 15, remainingMs: 15 * MIN, runningSince: null, finished: false });

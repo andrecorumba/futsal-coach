@@ -18,7 +18,7 @@ Funciona no navegador do celular, sem login e sem servidor. Depois da primeira v
 - Arrastar uma titular sobre outra titular troca as duas de vaga.
 - Soltar fora da quadra e do banco cancela o movimento.
 
-**Titulares e reservas.** No primeiro toque em iniciar do relógio, quem está em quadra vira titular e quem está no banco vira reserva. A partir daí a cor acompanha a jogadora: a reserva que entra continua com a cor de reserva na quadra, e a titular que sai continua com a cor de titular no banco. A vaga de goleira sempre usa a cor de goleira. Antes desse primeiro início a cor segue o lugar, para você montar a escalação à vontade, e essas trocas não entram no histórico de substituições. Se você tocar em iniciar antes de terminar a escalação, use **Nova partida** no menu para zerar os papéis.
+**Titulares e reservas.** No primeiro toque em iniciar do relógio, quem está em quadra vira titular e quem está no banco vira reserva. A partir daí a cor acompanha a jogadora: a reserva que entra continua com a cor de reserva na quadra, e a titular que sai continua com a cor de titular no banco. A vaga de goleira sempre usa a cor de goleira. Antes desse primeiro início a cor segue o lugar, para você montar a escalação à vontade, e essas trocas não entram no histórico de substituições. Se você tocar em iniciar antes de terminar a escalação, use **Reiniciar partida** no menu para zerar os papéis.
 
 **Cronômetro.** A barra de baixo mostra o tempo restante do período. Os botões são, nesta ordem:
 
@@ -33,7 +33,7 @@ Ao chegar a 00:00 o relógio para sozinho, o mostrador fica em destaque e o celu
 
 **Menu.** O botão no canto superior esquerdo abre o menu. Tocar fora dele fecha o menu sem mexer na quadra. No menu ficam:
 
-- **Nova partida** zera tempos, histórico, cronômetro e os papéis de titular e reserva, mantendo nomes e vagas. Os papéis são definidos de novo no próximo início do relógio. Carregar uma escalação também zera os papéis.
+- **Reiniciar partida** pede confirmação e recomeça o jogo com o mesmo time: as titulares voltam às vagas de quadra que tinham no primeiro início do relógio e as demais jogadoras voltam ao banco. Os nomes ficam; tempos, histórico, cronômetro e os papéis de titular e reserva são zerados, e os papéis são definidos de novo no próximo início. Se o relógio ainda não foi iniciado, as vagas ficam como estão. Se uma titular foi excluída, a vaga dela fica vazia. Carregar uma escalação também zera os papéis.
 - **Resumo de tempos** lista as jogadoras do maior para o menor tempo, marca quem está em quadra e mostra o histórico de substituições.
 - **Escalações** salva a escalação atual com um nome, carrega, exporta ou exclui escalações salvas.
 - **Cores** escolhe três cores: Goleira, Titulares e Reservas. Por padrão a goleira é amarela, as titulares azuis e as reservas roxo claro. As cores ficam salvas no aparelho.

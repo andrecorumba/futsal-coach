@@ -1,19 +1,28 @@
-// viewBox and projection per orientation (design.md D6).
+// viewBox and projection per orientation (design.md D6; portrait reworked in D1 of
+// phone-fit-and-restart-match).
 //
 // The court is 40 x 20 units with a 1-unit margin. Court slots use normalized
 // coordinates (x along the length, 0 = own goal; y along the width, 0 = left of
 // the attacking direction) and are projected with `toView`. Bench slots are laid
-// out in a grid of cells next to (landscape) or below (portrait) the court.
+// out in columns of cells to the right of the court in both orientations: 3 cells
+// per column in landscape (court height 20), 6 in portrait (court height 40).
+// Columns fill top to bottom, and a new column is added when one is full.
+//
+// The SVG fills everything between the top of the screen and the clock bar: there is no
+// top bar, the menu button floats over the board's top-left corner (design.md D2).
 //
 // Touch target math (spec court-lineup "Alvos de toque adequados"):
 //   Worst supported case is a 360 x 740 CSS px phone in portrait. The SVG area is
-//   740 - TOP_BAR_PX (44) - CLOCK_BAR_PX (64) = 632 px tall and 360 px wide.
-//   The portrait viewBox is 22 x 56, so the scale is min(360 / 22, 632 / 56)
-//   = min(16.36, 11.29) = 11.29 px per unit (height-limited).
-//   A 44 px target therefore needs 44 / 11.29 = 3.90 units, i.e. a radius of 1.95.
-//   HIT_RADIUS = 2.0 gives 2 * 2.0 * 11.29 = 45.1 px. The visible circle is a bit
-//   smaller (TOKEN_RADIUS = 1.6, 36 px) and an invisible hit circle carries the target.
-//   Landscape on a 740 x 360 phone: (360 - 108) / 22 = 11.45 px per unit, 45.8 px.
+//   740 - CLOCK_BAR_PX (64) = 676 px tall and 360 px wide.
+//   The portrait viewBox is 29 x 43, so the scale is min(360 / 29, 676 / 43)
+//   = min(12.41, 15.72) = 12.41 px per unit (width-limited).
+//   HIT_RADIUS = 2.0 gives 2 * 2.0 * 12.41 = 49.7 px. The visible circle is a bit
+//   smaller (TOKEN_RADIUS = 1.6, 39.7 px) and an invisible hit circle carries the target.
+//   Above 6 bench cells portrait gets a second column (width 34): 360 / 34 = 10.59 px per
+//   unit, 42.4 px targets (spec "Banco com muitas reservas em retrato" asks for 40 px or more).
+//   iPhone 15 Safari portrait, 393 x 659: SVG area 393 x 595, scale min(13.55, 13.84) = 13.55,
+//   court 271 x 542 px, drawing height 583 px = 97.9 % of the area.
+//   Landscape on a 740 x 360 phone: (360 - 64) / 22 = 13.45 px per unit, 53.8 px.
 //   Bench cells are 5 x 6 units, so neighbouring 4-unit hit circles never overlap.
 //   `tests/layout.test.ts` checks these numbers.
 
@@ -50,8 +59,7 @@ export interface Layout {
   benchCells: number;
 }
 
-/** Heights of the HTML bars around the SVG. Applied to CSS as custom properties by main.ts. */
-export const TOP_BAR_PX = 44;
+/** Height of the clock bar below the SVG. Applied to CSS as a custom property by main.ts. */
 export const CLOCK_BAR_PX = 64;
 
 export const COURT_LENGTH = 40;
@@ -74,13 +82,26 @@ export const BENCH_CELL_H = 6;
 /** Gap between court and bench (court edge to bench origin). */
 const BENCH_GAP = 2;
 
-/** Base sizes from design.md D6; the bench dimension grows when more cells are needed. */
+/**
+ * Base sizes; the bench width grows when more columns are needed. Portrait is 29 x 43 rather
+ * than the 29 x 42 of design.md D1: one extra unit below the court keeps the time label of the
+ * goalkeeper at her default spot (baseline at 42.25) inside the viewBox when the screen is
+ * height-limited, as on a tablet in portrait.
+ */
 const LANDSCAPE_MIN = { width: 52, height: 22 };
-const PORTRAIT_MIN = { width: 22, height: 56 };
+const PORTRAIT_MIN = { width: 29, height: 43 };
 
-/** Portrait: 4 columns across the 20-unit court width. Landscape: 3 rows down the 20-unit court height. */
-const PORTRAIT_COLS = Math.floor(COURT_WIDTH / BENCH_CELL_W);
+/** Cells per bench column: as many as fit along the court's vertical side (3 in landscape, 6 in portrait). */
 const LANDSCAPE_ROWS = Math.floor(COURT_WIDTH / BENCH_CELL_H);
+const PORTRAIT_ROWS = Math.floor(COURT_LENGTH / BENCH_CELL_H);
+
+function courtSize(orientation: Orientation): { w: number; h: number } {
+  return orientation === 'landscape' ? { w: COURT_LENGTH, h: COURT_WIDTH } : { w: COURT_WIDTH, h: COURT_LENGTH };
+}
+
+function rowsPerColumn(orientation: Orientation): number {
+  return orientation === 'landscape' ? LANDSCAPE_ROWS : PORTRAIT_ROWS;
+}
 
 export function currentOrientation(): Orientation {
   return globalThis.matchMedia?.('(orientation: portrait)').matches ? 'portrait' : 'landscape';
@@ -89,30 +110,18 @@ export function currentOrientation(): Orientation {
 /** Layout for an orientation and a number of bench cells (reserves + 1 for the add control). */
 export function computeLayout(orientation: Orientation, benchCells: number): Layout {
   const cells = Math.max(1, benchCells);
-  if (orientation === 'landscape') {
-    const cols = Math.ceil(cells / LANDSCAPE_ROWS);
-    const benchX = MARGIN + COURT_LENGTH + BENCH_GAP;
-    const width = Math.max(LANDSCAPE_MIN.width, benchX + cols * BENCH_CELL_W + MARGIN);
-    const height = LANDSCAPE_MIN.height;
-    return {
-      orientation,
-      width,
-      height,
-      court: { x: MARGIN, y: MARGIN, w: COURT_LENGTH, h: COURT_WIDTH },
-      bench: { x: benchX - 1, y: -OUTSIDE, w: width - benchX + 1 + OUTSIDE, h: height + 2 * OUTSIDE },
-      benchCells: cells,
-    };
-  }
-  const rows = Math.ceil(cells / PORTRAIT_COLS);
-  const benchY = MARGIN + COURT_LENGTH + BENCH_GAP;
-  const width = PORTRAIT_MIN.width;
-  const height = Math.max(PORTRAIT_MIN.height, benchY + rows * BENCH_CELL_H + MARGIN);
+  const court = courtSize(orientation);
+  const base = orientation === 'landscape' ? LANDSCAPE_MIN : PORTRAIT_MIN;
+  const cols = Math.ceil(cells / rowsPerColumn(orientation));
+  const benchX = MARGIN + court.w + BENCH_GAP;
+  const width = Math.max(base.width, benchX + cols * BENCH_CELL_W + MARGIN);
+  const height = base.height;
   return {
     orientation,
     width,
     height,
-    court: { x: MARGIN, y: MARGIN, w: COURT_WIDTH, h: COURT_LENGTH },
-    bench: { x: -OUTSIDE, y: benchY - 1, w: width + 2 * OUTSIDE, h: height - benchY + 1 + OUTSIDE },
+    court: { x: MARGIN, y: MARGIN, w: court.w, h: court.h },
+    bench: { x: benchX - 1, y: -OUTSIDE, w: width - benchX + 1 + OUTSIDE, h: height + 2 * OUTSIDE },
     benchCells: cells,
   };
 }
@@ -128,8 +137,8 @@ export function viewBoxOf(layout: Layout): string {
 
 /**
  * Projects normalized court coordinates into the viewBox.
- * Landscape: own goal on the left, attacking right. Portrait: own goal at the bottom
- * (next to the bench), attacking up; "left of the attacking direction" stays on the left.
+ * Landscape: own goal on the left, attacking right. Portrait: own goal at the bottom,
+ * attacking up; "left of the attacking direction" stays on the left.
  */
 export function toView(slot: Pick<Slot, 'x' | 'y'>, layout: Layout): Point {
   const c = layout.court;
@@ -154,21 +163,14 @@ export function fromView(p: Point, layout: Layout): { x: number; y: number } {
   return { x: clamp(x, insetX, 1 - insetX), y: clamp(y, insetY, 1 - insetY) };
 }
 
-/** Centre of the bench cell at `index` (0-based). Landscape fills columns top to bottom; portrait fills rows left to right. */
+/** Centre of the bench cell at `index` (0-based). Both orientations fill columns top to bottom, right of the court. */
 export function benchCell(index: number, layout: Layout): Point {
-  if (layout.orientation === 'landscape') {
-    const col = Math.floor(index / LANDSCAPE_ROWS);
-    const row = index % LANDSCAPE_ROWS;
-    return {
-      x: MARGIN + COURT_LENGTH + BENCH_GAP + (col + 0.5) * BENCH_CELL_W,
-      y: MARGIN + HIT_RADIUS + row * BENCH_CELL_H,
-    };
-  }
-  const col = index % PORTRAIT_COLS;
-  const row = Math.floor(index / PORTRAIT_COLS);
+  const rows = rowsPerColumn(layout.orientation);
+  const col = Math.floor(index / rows);
+  const row = index % rows;
   return {
-    x: MARGIN + (col + 0.5) * BENCH_CELL_W,
-    y: MARGIN + COURT_LENGTH + BENCH_GAP + HIT_RADIUS + row * BENCH_CELL_H,
+    x: layout.court.x + layout.court.w + BENCH_GAP + (col + 0.5) * BENCH_CELL_W,
+    y: MARGIN + HIT_RADIUS + row * BENCH_CELL_H,
   };
 }
 

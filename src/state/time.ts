@@ -1,7 +1,7 @@
 // Timestamp-based clock and playing time (design.md D4).
 // Every function is pure: callers pass `now` (epoch ms).
 
-import { clampMinutes, onCourtPlayerIds, type Match, type Period } from './model';
+import { clampMinutes, courtSlots, onCourtPlayerIds, type Match, type Period } from './model';
 
 export function isRunning(match: Match): boolean {
   return match.clock.runningSince !== null;
@@ -84,13 +84,17 @@ export function settle(match: Match, now: number): Match {
 /**
  * Kickoff (design.md D2): the first clock start of the match freezes roles. Whoever is on a
  * court slot becomes a starter, everyone on the bench a reserve. Later starts keep them.
+ * It also records who held each court slot, for "Reiniciar partida" to restore.
  */
 function freezeRoles(match: Match): Match {
   if (match.kickoff) return match;
   const onCourt = new Set(onCourtPlayerIds(match));
+  const kickoffCourt: Record<string, string> = {};
+  for (const s of courtSlots(match)) if (s.playerId !== null) kickoffCourt[s.id] = s.playerId;
   return {
     ...match,
     kickoff: true,
+    kickoffCourt,
     roster: match.roster.map((p) => ({ ...p, role: onCourt.has(p.id) ? 'starter' : 'reserve' })),
   };
 }

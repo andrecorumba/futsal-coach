@@ -11,8 +11,7 @@
   --accent: #43a047;
   --danger: #e53935;
   --finished: #ff5252;
-  /* Set from layout.ts by main.ts; fallbacks keep the same values. */
-  --top-bar: 44px;
+  /* Set from layout.ts by main.ts; the fallback keeps the same value. */
   --clock-bar: 64px;
 }
 
@@ -33,7 +32,11 @@ body {
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-rows: calc(var(--top-bar) + env(safe-area-inset-top)) 1fr calc(var(--clock-bar) + env(safe-area-inset-bottom));
+  /* Two rows: board and clock bar. No top bar: the board starts at the top of the safe area
+     and the menu button floats over it (design.md D2 of phone-fit-and-restart-match). */
+  grid-template-rows: 1fr calc(var(--clock-bar) + env(safe-area-inset-bottom));
+  padding-top: env(safe-area-inset-top);
+  box-sizing: border-box;
 }
 
 /* Buttons */
@@ -69,17 +72,18 @@ body {
   background: var(--danger);
 }
 
-/* Top bar */
+/* Menu button, floating over the board's top-left corner (44 px touch target). The board
+   already starts below the top safe area; the left inset matters in landscape with a notch. */
 
-.top-bar {
-  display: flex;
-  align-items: center;
-  padding: env(safe-area-inset-top) 8px 0 calc(8px + env(safe-area-inset-left));
-  background: var(--bg);
-}
 .menu-button {
-  background: transparent;
+  position: absolute;
+  top: 4px;
+  left: calc(4px + env(safe-area-inset-left));
+  z-index: 5;
+  width: 44px;
+  height: 44px;
   padding: 0;
+  background: rgba(27, 31, 36, 0.55);
 }
 
 /* Board */

@@ -82,6 +82,11 @@ export interface Match {
   settings: Colors;
   /** True from the first clock start of the match: roles are frozen and changes go into the history. */
   kickoff: boolean;
+  /**
+   * Who held each court slot at kickoff (court slot id to player id), so "Reiniciar partida"
+   * can restore that lineup (design.md D3 of phone-fit-and-restart-match). Empty before kickoff.
+   */
+  kickoffCourt: Record<string, string>;
 }
 
 export interface Lineup {
@@ -164,6 +169,7 @@ export function newMatch(lineup: Lineup = defaultLineup(), settings: Partial<Set
     substitutions: [],
     settings: { lineColor: s.lineColor, gkColor: s.gkColor, reserveColor: s.reserveColor },
     kickoff: false,
+    kickoffCourt: {},
   };
 }
 

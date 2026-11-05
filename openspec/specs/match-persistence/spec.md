@@ -32,12 +32,24 @@ O sistema SHALL, ao abrir com uma partida salva, oferecer continuar essa partida
 - **WHEN** o aplicativo abre sem partida salva
 - **THEN** uma partida nova começa diretamente, sem pergunta
 
-### Requirement: Partida nova pelo menu
-O sistema SHALL oferecer no menu a ação de iniciar uma partida nova, com confirmação, zerando cronômetro, tempos e histórico e mantendo a escalação atual como ponto de partida.
+### Requirement: Reiniciar partida pelo menu
+O sistema SHALL oferecer no menu a ação "Reiniciar partida", com confirmação, que mantém todos os nomes, devolve as titulares às vagas de quadra do apito inicial e as demais jogadoras ao banco, e zera cronômetro, tempos em quadra, histórico e papéis.
 
-#### Scenario: Nova partida com mesmo elenco
-- **WHEN** a usuária escolhe "Nova partida" no menu e confirma
-- **THEN** nomes e vagas são mantidos, os tempos voltam a 00:00, o histórico fica vazio e o cronômetro volta ao 1º tempo com a duração configurada
+#### Scenario: Reiniciar após o jogo
+- **WHEN** a partida já teve apito, "Lia" entrou no lugar de "Duda" no pivô, e a usuária escolhe "Reiniciar partida" e confirma
+- **THEN** "Duda" volta à vaga de pivô, "Lia" volta ao banco, todos os nomes permanecem, os tempos voltam a 00:00, o histórico fica vazio, nenhuma jogadora tem papel fixo e o cronômetro volta ao 1º tempo com a duração configurada
+
+#### Scenario: Reiniciar antes do apito
+- **WHEN** a partida ainda não teve apito e a usuária escolhe "Reiniciar partida" e confirma
+- **THEN** as vagas ficam como estão, os nomes permanecem e cronômetro, tempos e histórico são zerados
+
+#### Scenario: Cancelar
+- **WHEN** a usuária escolhe "Reiniciar partida" e cancela a confirmação
+- **THEN** nada muda
+
+#### Scenario: Reserva excluída após o apito
+- **WHEN** uma titular do apito foi excluída do elenco e a usuária reinicia a partida
+- **THEN** a vaga dela fica vazia e as demais titulares voltam normalmente
 
 ### Requirement: Salvar e carregar escalações
 O sistema SHALL permitir salvar a escalação atual (elenco, nomes e vagas) com um nome dado pela usuária, listar as escalações salvas e carregar ou excluir qualquer uma delas.

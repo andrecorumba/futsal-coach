@@ -225,8 +225,8 @@ function record(match: Match, outPlayerId: string | null, inPlayerId: string | n
 
 // Match lifecycle (spec match-persistence)
 
-/** New match from the menu: keeps names and slots, zeroes clock, times, history and roles until the next kickoff. */
-function restartMatch(match: Match): Match {
+/** Zeroes clock, times, history, roles and the kickoff record; roster names and slots are untouched. */
+function resetProgress(match: Match): Match {
   return {
     ...match,
     roster: match.roster.map((p) => ({ ...p, role: null })),
@@ -235,13 +235,59 @@ function restartMatch(match: Match): Match {
     playingSince: {},
     substitutions: [],
     kickoff: false,
+    kickoffCourt: {},
   };
+}
+
+/**
+ * "Reiniciar partida" from the menu (design.md D4 of phone-fit-and-restart-match): keeps every
+ * name, zeroes clock, times, history and roles, and puts the kickoff lineup back. Each court slot
+ * gets its kickoff player if she is still in the roster, or stays empty. Everyone else goes to the
+ * bench: current reserves keep their relative order, players coming off the court are appended.
+ * Bench slots always hold a player, one slot per player off the court. Before kickoff the slots
+ * stay as they are.
+ */
+function restartMatch(match: Match): Match {
+  const reset = resetProgress(match);
+  const kickoffCourt = match.kickoffCourt;
+  if (Object.keys(kickoffCourt).length === 0) return reset;
+
+  const known = new Set(match.roster.map((p) => p.id));
+  const starterOf = (slot: Slot): string | null => {
+    const id = kickoffCourt[slot.id];
+    return id !== undefined && known.has(id) ? id : null;
+  };
+  const courts = match.slots.filter((s) => s.kind === 'court').map((s) => ({ ...s, playerId: starterOf(s) }));
+  const onCourt = new Set(courts.map((s) => s.playerId).filter((id): id is string => id !== null));
+
+  const benchOrder: string[] = [];
+  const pushBench = (id: string | null): void => {
+    if (id !== null && known.has(id) && !onCourt.has(id) && !benchOrder.includes(id)) benchOrder.push(id);
+  };
+  for (const s of match.slots) if (s.kind === 'bench') pushBench(s.playerId);
+  for (const s of match.slots) if (s.kind === 'court') pushBench(s.playerId);
+  // Anyone in the roster not in a slot (should not happen) still gets a bench place.
+  for (const p of match.roster) pushBench(p.id);
+
+  // Reuse the existing bench slot ids in order, creating new ones only when needed.
+  const benchIds = match.slots.filter((s) => s.kind === 'bench').map((s) => s.id);
+  const usedIds = match.slots.map((s) => s.id);
+  const bench: Slot[] = benchOrder.map((playerId, i) => {
+    let id = benchIds[i];
+    if (id === undefined) {
+      id = nextId('bench-', usedIds);
+      usedIds.push(id);
+    }
+    return { id, kind: 'bench', playerId, x: 0, y: 0 };
+  });
+
+  return { ...reset, slots: [...courts, ...bench] };
 }
 
 /** Loads a saved lineup: roster and slots from the lineup, times, history and clock zeroed. */
 function applyLineup(match: Match, lineup: Lineup): Match {
   return {
-    ...restartMatch(match),
+    ...resetProgress(match),
     roster: lineup.roster.map((p) => ({ ...p, role: null })),
     slots: lineup.slots.map((s) => ({ ...s })),
   };

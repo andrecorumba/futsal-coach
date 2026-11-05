@@ -83,6 +83,8 @@ describe('court-lineup: Nova partida zera os papéis (task 1.3)', () => {
     let m = run(played(), { type: 'newMatch' });
     expect(m.kickoff).toBe(false);
     expect(m.roster.every((p) => p.role === null)).toBe(true);
+    // The restart put Duda back on court and Lia on the bench (match-persistence "Reiniciar partida pelo menu").
+    m = swap(m, 'Lia', 'Duda', T0 + 9 * MIN);
     m = run(m, { type: 'startClock', now: T0 + 10 * MIN });
     expect(roleOf(m, 'Lia')).toBe('starter');
     expect(roleOf(m, 'Duda')).toBe('reserve');

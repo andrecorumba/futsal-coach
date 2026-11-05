@@ -62,7 +62,7 @@ export function createMenu(opts: MenuOptions): Menu {
 
   // Match actions
   const matchSection = section(t.menu.sectionMatch);
-  const newMatchButton = button(t.menu.newMatch, 'btn menu-action');
+  const restartButton = button(t.menu.restartMatch, 'btn menu-action');
   const exportButton = button(t.menu.exportMatch, 'btn menu-action');
   const importButton = button(t.menu.importJson, 'btn menu-action');
   const note = document.createElement('p');
@@ -70,7 +70,7 @@ export function createMenu(opts: MenuOptions): Menu {
   note.textContent = t.menu.backupNote;
   const actionRow = document.createElement('div');
   actionRow.className = 'menu-actions';
-  actionRow.append(newMatchButton, exportButton, importButton);
+  actionRow.append(restartButton, exportButton, importButton);
   matchSection.append(actionRow, note);
 
   // Summary
@@ -293,9 +293,10 @@ export function createMenu(opts: MenuOptions): Menu {
     releaseGuard();
   });
 
-  newMatchButton.addEventListener('click', () => {
-    void confirmDialog(t.menu.confirmNewMatch, t.menu.newMatchAction).then((ok) => {
+  restartButton.addEventListener('click', () => {
+    void confirmDialog(t.menu.confirmRestartMatch, t.menu.restartMatchAction).then((ok) => {
       if (!ok) return;
+      // Reducer action keeps its name; it restores the kickoff lineup (design.md D4).
       app.dispatch({ type: 'newMatch' });
       close();
     });
